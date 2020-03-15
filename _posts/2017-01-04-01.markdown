@@ -1,15 +1,12 @@
 ---
 layout: single
-classes: wide
 excerpt: ""
 title: "keras를 이용한 다중 클래스 이미지 분류(1/2)"
 date: 2017-01-04 17:32:00 +0900
 tags: keras image-classication
 ---
 
-이 글은 이전 글인 [keras를 이용한 이미지 이진 분류]({{ site.url }}/2017/01/01/01.html)를 활용하여 작성하였다.
-
-[keras를 이용한 이미지 이진 분류]({{ site.url }}/2017/01/01/01.html)의 내용을 간략하게 상기시키면, 다음 3가지 방법을 토대로 적은 수의 이미지를 이용하여 이미지 분류를 위한 학습을 진행하였다.
+이 글은 이전 글인 [keras를 이용한 이미지 이진 분류]({{ site.url }}/2017/01/01/01.html)를 활용하여 작성하였다. [keras를 이용한 이미지 이진 분류]({{ site.url }}/2017/01/01/01.html)의 내용을 간략하게 상기시키면, 다음 3가지 방법을 토대로 적은 수의 이미지를 이용하여 이미지 분류를 위한 학습을 진행하였다.
 
 1. 이미지 증가
 1. 기 학습된 모델의 feature 활용
@@ -19,17 +16,11 @@ tags: keras image-classication
 
 ## 학습 및 검증 데이터 검수
 
-본격적인 학습에 앞서, 훈련과 검증이 사용될 이미지를 검수하는 작업을 진행해야 한다.
-
-교사학습의 특성상 훈련 예는 불순물 없이 올바른 훈련 예만 제공되는 것이 좋기 때문이다.
-
-이를 위해 훈련 예를 검수하는 작업은 필수이다.
+본격적인 학습에 앞서, 훈련과 검증이 사용될 이미지를 검수하는 작업을 진행해야 한다. 교사학습의 특성상 훈련 예는 불순물 없이 올바른 훈련 예만 제공되는 것이 좋기 때문이다. 이를 위해 훈련 예를 검수하는 작업은 필수이다.
 
 ## 기 학습된 모델의 feature 활용
 
-우선, 기 학습된 모델을 확보하기 위해 아래의 링크에서 VGG16 모델의 학습된 weights를 다운로드 받는다.
-
-[VGG16 모델 다운로드]
+우선, 기 학습된 모델을 확보하기 위해 [VGG16 모델 다운로드]에서 VGG16 모델의 학습된 weights를 다운로드 받는다.
 
 그 후, 아래의 함수를 이용하여 같이 VGG16 모델 bottleneck feature를 저장한다.
 
@@ -106,11 +97,7 @@ def save_bottlebeck_features():
     np.save(open('bottleneck_features_validation.npy', 'wb'), bottleneck_features_validation)
 {% endhighlight %}
 
-위의 코드를 간단히 살펴보자면, VGG16 모델 레이어와 동일한 모델을 정의하고, 정의된 모델에 기 학습된 weights를 로드한다.
-
-그 후, 훈련 예를 이용하여 bottleneck features를 저장한다.
-
-기존의 이미지 이진 분류와의 차이점은 generator 객체 생성 시 분류 모델을 지정하는 `class_mode` 옵션을 `binary`가 아닌 `categorical`로 변경한 것이다. 
+위의 코드를 간단히 살펴보자면, VGG16 모델 레이어와 동일한 모델을 정의하고, 정의된 모델에 기 학습된 weights를 로드한다. 그 후, 훈련 예를 이용하여 bottleneck features를 저장한다. 기존의 이미지 이진 분류와의 차이점은 generator 객체 생성 시 분류 모델을 지정하는 `class_mode` 옵션을 `binary`가 아닌 `categorical`로 변경한 것이다. 
 
 문서를 살펴보면, `class_mode` 옵션은 아래와 같이 3가지 중 1가지를 선택할 수 있다.
 
@@ -147,30 +134,9 @@ def train_top_model():
     model.save_weights(top_model_weights_path)
 {% endhighlight %}
 
-기존 코드와 달라진 중 하나는, train_labels, validation_labels을 구할 때 훈련 예와 검증 예의 갯수가 정해져있어 2등분해서 썼었지만, 위의 코드에서는 훈련 예와 검증 예의 갯수가 정해져 있지 않기 때문에 직접 기입해야 한다는 것이다.
+기존 코드와 달라진 중 하나는, train_labels, validation_labels을 구할 때 훈련 예와 검증 예의 갯수가 정해져있어 2등분해서 썼었지만, 위의 코드에서는 훈련 예와 검증 예의 갯수가 정해져 있지 않기 때문에 직접 기입해야 한다는 것이다. make_labels_by_category 함수에서는 각 폴더에 존재하는 훈련 예와 검증 예의 갯수를 불러와서 numpy array 형태로 만들어주는 역할을 한다. 예를 들어, 'A', 'B', 'C'의 카테고리가 있을 경우, 'A'가 1000개, 'B'가 2000개, 'C'가 500개라면, labels = np.array(['A'] * 1000 + ['B'] * 2000 + ['C'] * 500)로 구성되어질 것이다. 당연히, labels 갯수가 data 갯수와 일치하지 않으면 학습이 진행되지 않는다. (~~<span style="color: grey">너무 뻔한 소리지만 나는 왜 학습이 진행이 안되나 한참을 헤맸으므로 혹시 몰라서...</span>~~)
+이렇게 생성된 labels값을 to_categorical 함수를 이용하여 multi dimension의 카테고리 labels 값을 가지게 된다. (~~<span style="color: grey">궁금하면 shape 속성을 print해보면 어떤 형태인지 알 수 있을 것이다.</span>~~)
 
-make_labels_by_category 함수에서는 각 폴더에 존재하는 훈련 예와 검증 예의 갯수를 불러와서 numpy array 형태로 만들어주는 역할을 한다.
-
-예를 들어, 'A', 'B', 'C'의 카테고리가 있을 경우, 'A'가 1000개, 'B'가 2000개, 'C'가 500개라면, labels = np.array(['A'] * 1000 + ['B'] * 2000 + ['C'] * 500)로 구성되어질 것이다.
-
-당연히, labels 갯수가 data 갯수와 일치하지 않으면 학습이 진행되지 않는다.
-
-(~~<span style="color: grey">너무 뻔한 소리지만 나는 왜 학습이 진행이 안되나 한참을 헤맸으므로 혹시 몰라서...</span>~~)
-
-이렇게 생성된 labels값을 to_categorical 함수를 이용하여 multi dimension의 카테고리 labels 값을 가지게 된다.
-
-(~~<span style="color: grey">궁금하면 shape 속성을 print해보면 어떤 형태인지 알 수 있을 것이다.</span>~~)
-
-그리고, 또 다른 차이점은 top_model의 `dense`와 `activation function` 옵션이 변경된 것이다.
-
-`dense`는 레이어의 밀집도를 나타내는 것으로 최종 output의 형태가 각 클래스의 확률로 표현되기 위해 클래스 갯수만큼의 `dense`를 설정하였다.
-
-`activation function` 옵션은 기존에는 `sigmoid` 함수를 사용했는데,(~~<span style="color: grey">binary 분류였으니까 당연히...</span>~~)
-
-이 예제에서는 다중 클래스 분류를 위해 `softmax` 함수로 변경하였다.
-
-이렇게 학습된 모델은 fine tuning을 거쳐 이미지 분류기 역할을 하게 된다.
-
-fine tuning을 진행하는 예제는 다음 포스트에 진행하기로 한다.
+그리고, 또 다른 차이점은 top_model의 `dense`와 `activation function` 옵션이 변경된 것이다. `dense`는 레이어의 밀집도를 나타내는 것으로 최종 output의 형태가 각 클래스의 확률로 표현되기 위해 클래스 갯수만큼의 `dense`를 설정하였다. `activation function` 옵션은 기존에는 `sigmoid` 함수를 사용했는데,(~~<span style="color: grey">binary 분류였으니까 당연히...</span>~~) 이 예제에서는 다중 클래스 분류를 위해 `softmax` 함수로 변경하였다. 이렇게 학습된 모델은 fine tuning을 거쳐 이미지 분류기 역할을 하게 된다. fine tuning을 진행하는 예제는 다음 글에서 진행하기로 한다.
 
 [VGG16 모델 다운로드]: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3

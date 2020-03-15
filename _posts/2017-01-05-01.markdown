@@ -1,26 +1,20 @@
 ---
 layout: single
-classes: wide
 excerpt: ""
 title: "keras를 이용한 다중 클래스 이미지 분류(2/2)"
 date: 2017-01-05 21:36:00 +0900
 tags: keras image-classification deep-learning
 ---
 
-이 글은 이전 글인 [keras를 이용한 다중 클래스 이미지 분류]({{ site.url }}/2017/01/04/01.html)에 이어서 작성되었다.
-
-이전 글에서 기 학습된 모델의 feature를 활용하여 top_model을 학습하는 것에 대해 설명하였다면, 이 글에서는 fine tuning을 통해 마지막 레이어를 세밀하게 학습하는 과정을 살펴보도록 하자.
+이 글은 이전 글인 [keras를 이용한 다중 클래스 이미지 분류]({{ site.url }}/2017/01/04/01.html)에 이어서 작성되었다. 이전 글에서 기 학습된 모델의 feature를 활용하여 top_model을 학습하는 것에 대해 설명하였다면, 이 글에서는 fine tuning을 통해 마지막 레이어를 세밀하게 학습하는 과정을 살펴보도록 하자.
 
 ## Fine tuning
 
-이전 글에서 설명했듯이, fine tuning은 미리 학습된 모델의 마지막 레벨 conv block의 weights를 학습하되 새로운 훈련 예를 이용하여 weights를 조금씩 갱신하는 것이다.
-
-fine tuning을 진행하면, overfitting 문제를 줄일 수 있고, 주어진 훈련 예에 맞는 feature들에 대해 세밀한 학습이 이뤄질 수 있다.
+이전 글에서 설명했듯이, fine tuning은 미리 학습된 모델의 마지막 레벨 conv block의 weights를 학습하되 새로운 훈련 예를 이용하여 weights를 조금씩 갱신하는 것이다. fine tuning을 진행하면, overfitting 문제를 줄일 수 있고, 주어진 훈련 예에 맞는 feature들에 대해 세밀한 학습이 이뤄질 수 있다.
 
 아래 코드는, [keras를 이용한 다중 클래스 이미지 분류]({{ site.url }}/2017/01/04/01.html)에서 기 학습된 weights와 [keras 이진 분류 fine tuning 샘플 코드]를 활용하여 생성한 샘플 코드의 일부분이다.
 
 {% highlight python %}
-
 # build a classifier model to put on top of the convolutional model             
 top_model = Sequential()                                                        
 top_model.add(Flatten(input_shape=model.output_shape[1:]))                      
@@ -89,15 +83,7 @@ model.save_weights(fine_tuning_weights_path)
 1. class_mode를 `binary`에서 `categorical`로 변경
 1. fine tuning 된 weights를 저장
 
-우선, activation function은 다중 클래스의 결과값을 나타내야 하기 때문에 `softmax`로 변경하였다.
-
-또한, 다양한 이미지를 확보하여 학습을 진행하기 위해 ImageDataGenerator의 다양한 옵션을 활용하였고, 다중 클래스에 대한 결과 값을 얻기 위해 loss 함수와 class_mode 설정 값을 변경하였다.
-
-위의 코드를 참고하여 fine tuning을 진행하면, 기존 학습과는 다르게 learning rate를 조절하여 굉장히 느리게 학습되는 것을 알 수 있다.
-
-그렇기 때문에 epoch 횟수를 충분히 두어 최소의 loss를 갖는 포인트까지 학습해야 한다.
-
-(위의 예에서는 훈련 예가 많아서 nb_epoch 횟수를 150회로 증가시켜 진행하였다.)
+우선, activation function은 다중 클래스의 결과값을 나타내야 하기 때문에 `softmax`로 변경하였다. 또한, 다양한 이미지를 확보하여 학습을 진행하기 위해 ImageDataGenerator의 다양한 옵션을 활용하였고, 다중 클래스에 대한 결과 값을 얻기 위해 loss 함수와 class_mode 설정 값을 변경하였다. 위의 코드를 참고하여 fine tuning을 진행하면, 기존 학습과는 다르게 learning rate를 조절하여 굉장히 느리게 학습되는 것을 알 수 있다. 그렇기 때문에 epoch 횟수를 충분히 두어 최소의 loss를 갖는 포인트까지 학습해야 한다. (위의 예에서는 훈련 예가 많아서 nb_epoch 횟수를 150회로 증가시켜 진행하였다.)
 
 ## 학습 결과
 

@@ -1,6 +1,5 @@
 ---
 layout: single
-classes: wide
 excerpt: ""
 title: "macOS에서 pyexpat 모듈 못찾는 문제 해결"
 date: 2020-03-07 18:33:00 +0900
