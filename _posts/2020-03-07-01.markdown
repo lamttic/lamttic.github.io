@@ -1,9 +1,12 @@
 ---
 layout: single
 classes: wide
-title:  "macOS에서 pyexpat 모듈 못찾는 문제 해결"
-date:   2020-03-07 18:33:00 +0900
+excerpt: ""
+title: "macOS에서 pyexpat 모듈 못찾는 문제 해결"
+date: 2020-03-07 18:33:00 +0900
+tags: mac python pyexpat
 ---
+
 macOS에서 pyenv install 시 아래와 같은 메시지와 함께 설치가 안되는 문제가 발생하는 경우가 있다.
 
 ```

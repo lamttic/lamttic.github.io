@@ -1,8 +1,10 @@
 ---
 layout: single
 classes: wide
-title:  "keras를 이용한 이미지 이진 분류"
-date:   2017-01-01 12:03:00 +0900
+excerpt: ""
+title: "keras를 이용한 이미지 이진 분류"
+date: 2017-01-01 12:03:00 +0900
+tags: keras image-classification deep-learning
 ---
 이번 포스트에는 `keras`를 이용한 이미지 이진 분류 테스트를 진행해보고자 한다.
 

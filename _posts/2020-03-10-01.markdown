@@ -1,8 +1,10 @@
 ---
 layout: single
 classes: wide
-title:  "elasticsearch에서 nori, ngram tokenizer를 동시에 활용하기"
-date:   2020-03-10 16:07:00 +0900
+excerpt: ""
+title: "elasticsearch에서 nori, ngram tokenizer를 동시에 활용하기"
+date: 2020-03-10 16:07:00 +0900
+tags: elasticsearch tokenizer nori ngram
 ---
 
 elasticsearch는 최근 가장 많이 사용되고 있는 검색 및 분석 엔진 서비스로 빠른 속도, 쉬운 확장성과 같은 장점때문에 많이 사용되고 있다.

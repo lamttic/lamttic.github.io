@@ -1,8 +1,10 @@
 ---
 layout: single
 classes: wide
-title:  "GPU를 인식하지 못하는 문제 해결"
-date:   2017-01-02 16:20:00 +0900
+excerpt: ""
+title: "GPU를 인식하지 못하는 문제 해결"
+date: 2017-01-02 16:20:00 +0900
+tags: keras tensorflow gpu
 ---
 
 이 포스트에서는 tensorflow와 keras를 이용하여 이미지를 분류할 때, GPU를 인식하지 못하는 문제에 대해 기술하려고 한다.
