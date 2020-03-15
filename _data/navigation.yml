@@ -1,5 +1,7 @@
 # main links
 main:
+  - title: "Q&A"
+    url: https://github.com/lamttic/lamttic.github.io/issues
   # - title: "About"
   #   url: https://lamttic.github.io/about/
   # - title: "Sample Posts"
