@@ -1,0 +1,48 @@
+---
+layout: single
+classes: wide
+title:  "macOS에서 pyexpat 모듈 못찾는 문제 해결"
+date:   2020-03-07 18:33:00 +0900
+---
+macOS에서 pyenv install 시 아래와 같은 메시지와 함께 설치가 안되는 문제가 발생하는 경우가 있다.
+
+```
+~ » pyenv install 3.8.1
+Installing openssl-1.1.0j...
+Installed openssl-1.1.0j to /Users/charles/.pyenv/versions/3.8.1
+
+python-build: use readline from homebrew
+Installing Python-3.8.1...
+python-build: use readline from homebrew
+python-build: use zlib from xcode sdk
+
+BUILD FAILED (OS X 10.14.3 using python-build 20180424)
+
+Inspect or clean up the working tree at /var/folders/tf/x42t0bkd7tq356r84rsbc3fm0000gn/T/python-build.20200307180551.1839
+Results logged to /var/folders/tf/x42t0bkd7tq356r84rsbc3fm0000gn/T/python-build.20200307180551.1839.log
+
+Last 10 log lines:
+  File "<frozen zipimport>", line 259, in load_module
+  File "/var/folders/tf/x42t0bkd7tq356r84rsbc3fm0000gn/T/tmpnzts9bjh/pip-19.2.3-py2.py3-none-any.whl/pip/_internal/utils/misc.py", line 21, in <module>
+  File "<frozen zipimport>", line 259, in load_module
+  File "/var/folders/tf/x42t0bkd7tq356r84rsbc3fm0000gn/T/tmpnzts9bjh/pip-19.2.3-py2.py3-none-any.whl/pip/_vendor/pkg_resources/__init__.py", line 35, in <module>
+  File "/private/var/folders/tf/x42t0bkd7tq356r84rsbc3fm0000gn/T/python-build.20200307180551.1839/Python-3.8.1/Lib/plistlib.py", line 65, in <module>
+    from xml.parsers.expat import ParserCreate
+  File "/private/var/folders/tf/x42t0bkd7tq356r84rsbc3fm0000gn/T/python-build.20200307180551.1839/Python-3.8.1/Lib/xml/parsers/expat.py", line 4, in <module>
+    from pyexpat import *
+ModuleNotFoundError: No module named 'pyexpat'
+make: *** [install] Error 1
+```
+
+이 경우 [해결책] 링크를 참고하여 아래와 같이 해결할 수 있다.
+
+```
+sudo rm -rf /Library/Developer/CommandLineTools
+xcode-select --install
+pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+pyenv install 3.8.1
+```
+
+![처리 결과]({{ site.url }}/assets/images/2020-03-07-01-01.png)
+
+[해결책]: https://github.com/pyenv/pyenv/issues/1066

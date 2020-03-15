@@ -1,0 +1,1070 @@
+<!doctype html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.18.1 by Michael Rose
+  Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+-->
+<html lang="ko" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>elasticsearch에서 nori, ngram tokenizer를 동시에 활용하기 - lamttic’s playground</title>
+<meta name="description" content="elasticsearch는 최근 가장 많이 사용되고 있는 검색 및 분석 엔진 서비스로 빠른 속도, 쉬운 확장성과 같은 장점때문에 많이 사용되고 있다.  ">
+
+
+  <meta name="author" content="lamttic">
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="lamttic's playground">
+<meta property="og:title" content="elasticsearch에서 nori, ngram tokenizer를 동시에 활용하기">
+<meta property="og:url" content="http://localhost:4000/2020/03/10/01.html">
+
+
+  <meta property="og:description" content="elasticsearch는 최근 가장 많이 사용되고 있는 검색 및 분석 엔진 서비스로 빠른 속도, 쉬운 확장성과 같은 장점때문에 많이 사용되고 있다.  ">
+
+
+
+
+
+
+
+  <meta property="article:published_time" content="2020-03-10T16:07:00+09:00">
+
+
+
+
+
+  
+
+  
+
+
+<link rel="canonical" href="http://localhost:4000/2020/03/10/01.html">
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    
+      "@type": "Person",
+      "name": "lamttic",
+      "url": "http://localhost:4000/"
+    
+  }
+</script>
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="lamttic's playground Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+
+<!--[if IE]>
+  <style>
+    /* old IE unsupported flexbox fixes */
+    .greedy-nav .site-title {
+      padding-right: 3em;
+    }
+    .greedy-nav button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+    }
+  </style>
+<![endif]-->
+
+
+
+    <!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/ -->
+
+<!-- end custom head snippets -->
+
+  </head>
+
+  <body class="layout--single wide">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/">
+          lamttic's playground
+          
+        </a>
+        <ul class="visible-links"></ul>
+        
+        <button class="search__toggle" type="button">
+          <span class="visually-hidden">Toggle search</span>
+          <svg class="icon" width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15.99 16">
+            <path d="M15.5,13.12L13.19,10.8a1.69,1.69,0,0,0-1.28-.55l-0.06-.06A6.5,6.5,0,0,0,5.77,0,6.5,6.5,0,0,0,2.46,11.59a6.47,6.47,0,0,0,7.74.26l0.05,0.05a1.65,1.65,0,0,0,.5,1.24l2.38,2.38A1.68,1.68,0,0,0,15.5,13.12ZM6.4,2A4.41,4.41,0,1,1,2,6.4,4.43,4.43,0,0,1,6.4,2Z" transform="translate(-.01)"></path>
+          </svg>
+        </button>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">토글 메뉴</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person">
+
+  
+    <div class="author__avatar">
+      
+        <img src="/assets/images/bio-photo.png" alt="lamttic" itemprop="image">
+      
+    </div>
+  
+
+  <div class="author__content">
+    
+      <h3 class="author__name" itemprop="name">lamttic</h3>
+    
+    
+      <div class="author__bio" itemprop="description">
+        <p>I interested in data-analysis, machine-learning, recommender-system, and so on..</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">팔로우</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name">Seoul, South korea</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="mailto:lamttic@gmail.com" rel="nofollow noopener noreferrer"><i class="fas fa-fw fa-envelope-square" aria-hidden="true"></i> Email</a></li>
+          
+        
+          
+            <li><a href="https://facebook.com/lamttic" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-facebook-square" aria-hidden="true"></i> Facebook</a></li>
+          
+        
+          
+            <li><a href="https://github.com/lamttic" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
+          
+        
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page" itemscope itemtype="https://schema.org/CreativeWork">
+    <meta itemprop="headline" content="elasticsearch에서 nori, ngram tokenizer를 동시에 활용하기">
+    <meta itemprop="description" content="elasticsearch는 최근 가장 많이 사용되고 있는 검색 및 분석 엔진 서비스로 빠른 속도, 쉬운 확장성과 같은 장점때문에 많이 사용되고 있다.">
+    <meta itemprop="datePublished" content="2020-03-10T16:07:00+09:00">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 id="page-title" class="page__title" itemprop="headline">elasticsearch에서 nori, ngram tokenizer를 동시에 활용하기
+</h1>
+          
+            <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  8 분 소요
+
+</p>
+          
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        
+        <p>elasticsearch는 최근 가장 많이 사용되고 있는 검색 및 분석 엔진 서비스로 빠른 속도, 쉬운 확장성과 같은 장점때문에 많이 사용되고 있다.</p>
+
+<p>보통 검색엔진으로 사용하는 경우, tokenizer를 이용하여 token을 색인하는데, 어떤 tokenizer를 활용하냐에 따라 검색의 방향과 품질에 정해진다.</p>
+
+<p>이 중 nori tokenizer는 잘 알려진 한글 tokenizer로써, 사용자 사전과 함께 사용하면 좋은 성능을 보인다.</p>
+
+<p>하지만, nori tokenizer나 사용자 사전에서 인식하지 못하는 형태소나 부분적으로 포함된 키워드가 있을 경우 검색 결과에서 볼 수 없는 문제가 있다.</p>
+
+<p>이 글에서는 nori tokenizer와 ngram tokenizer를 같이 활용하여 검색 품질을 높일 수 방법에 대해 알아보고자 한다.</p>
+
+<h2 id="문제점-및-개선방향">문제점 및 개선방향</h2>
+
+<p>그동안 개발하고 있는 서비스에서는 elasticsearch에 nori tokenizer를 활용했다.</p>
+
+<p>(nori tokenizer에 약 20만개의 사용자 사전과 동의어, 불용어 사전을 붙여 사용했다.)</p>
+
+<p>이 방법은 사전 정보가 잘 구성이 되어 있을 때는 성능이 좋지만 사전이 부족하거나 정제되지 않는 키워드가 많은 경우 검색이 잘 되지 않는 문제가 있었다.</p>
+
+<p>(사용자가 직접 컨텐츠를 생산하는 경우, 정제되지 않은 키워드가 포함될 가능성이 높으므로 예측하지 못한 단어 사용이 늘어나 문제가 발생될 확률이 높다.)</p>
+
+<p>이를 개선하기 위해 아래의 조건을 만족하면서 LIKE 검색과 유사하게 동작할 수 있는 방법을 찾아야 했다.</p>
+
+<ol>
+  <li>
+    <p>nori tokenizer로 색인하는 방법과 병행할 수 있는 방법이어야 한다.</p>
+  </li>
+  <li>
+    <p>검색 속도 및 성능에 지장이 있어서는 안된다.</p>
+  </li>
+</ol>
+
+<p>우선, 기존 nori tokenizer로 색인하여 검색하는 방법의 성능이 어느정도 보장이 되었기 때문에 기존의 성능은 유지하면서 개선할 수 있어야 한다.</p>
+
+<p>또한, 새로운 방법을 적용한다고 해도 검색엔진 속도나 성능에 문제가 생기지 않아야 한다.</p>
+
+<h2 id="새로운-필드-생성-그리고-wildcard-쿼리">새로운 필드 생성 그리고 wildcard 쿼리</h2>
+
+<p>우선, 첫 번째 조건을 만족하기 위해 가장 먼저 떠오른 아이디어는 wildcard 쿼리를 사용하는 것이었다.</p>
+
+<p>wildcard는 sql의 LIKE 쿼리와 같이 특정 키워드가 포함된 모든 결과를 찾을 수 있어서 원하는 동작을 할 수 있다고 생각했다.</p>
+
+<p>테스트를 위해 애국가 앞 부분을 nori tokenizer를 이용하여 추출된 결과는 아래와 같다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -XPOST http://localhost:9200/test/_analyze?pretty -H 'content-type: application/json' -d '
+{
+  "analyzer": "nori_analyzer",
+  "text": "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세"
+}
+
+{
+  "tokens" : [
+    {
+      "token" : "동해",
+      "start_offset" : 0,
+      "end_offset" : 2,
+      "type" : "word",
+      "position" : 0
+    },
+    {
+      "token" : "물",
+      "start_offset" : 2,
+      "end_offset" : 3,
+      "type" : "word",
+      "position" : 1
+    },
+    {
+      "token" : "백두",
+      "start_offset" : 5,
+      "end_offset" : 7,
+      "type" : "word",
+      "position" : 3
+    },
+    {
+      "token" : "산",
+      "start_offset" : 7,
+      "end_offset" : 8,
+      "type" : "word",
+      "position" : 4
+    },
+    {
+      "token" : "마르",
+      "start_offset" : 10,
+      "end_offset" : 12,
+      "type" : "word",
+      "position" : 6
+    },
+    {
+      "token" : "닳",
+      "start_offset" : 14,
+      "end_offset" : 15,
+      "type" : "word",
+      "position" : 8
+    },
+    {
+      "token" : "하느",
+      "start_offset" : 18,
+      "end_offset" : 20,
+      "type" : "word",
+      "position" : 10
+    },
+    {
+      "token" : "님",
+      "start_offset" : 20,
+      "end_offset" : 21,
+      "type" : "word",
+      "position" : 11
+    },
+    {
+      "token" : "보우",
+      "start_offset" : 23,
+      "end_offset" : 25,
+      "type" : "word",
+      "position" : 13
+    },
+    {
+      "token" : "우리",
+      "start_offset" : 28,
+      "end_offset" : 30,
+      "type" : "word",
+      "position" : 16
+    },
+    {
+      "token" : "나라",
+      "start_offset" : 30,
+      "end_offset" : 32,
+      "type" : "word",
+      "position" : 17
+    },
+    {
+      "token" : "만세",
+      "start_offset" : 33,
+      "end_offset" : 35,
+      "type" : "word",
+      "position" : 18
+    }
+  ]
+}
+</code></pre></div></div>
+
+<p>이렇게 nori tokenizer로 색인한 문서 중 <b>백두</b>가 포함된 검색결과를 얻기 위해 wildcard로 검색하면 아래와 같다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -XGET http://localhost:9200/test/_search?pretty -H 'content-type: application/json' -d '
+{
+  "query": {
+    "wildcard": {
+      "nori": {
+        "value": "*백두*"
+      }
+    }
+  }
+}
+'
+
+{
+  "took" : 1,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 1.0,
+    "hits" : [
+      {
+        "_index" : "test",
+        "_type" : "_doc",
+        "_id" : "1",
+        "_score" : 1.0,
+        "_source" : {
+          "text" : "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세"
+        }
+      }
+    ]
+  }
+}
+</code></pre></div></div>
+
+<p>그렇다면 다음의 예를 살펴보자.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -XGET http://localhost:9200/test/_search?pretty -H 'content-type: application/json' -d '
+{
+  "query": {
+    "wildcard": {
+      "nori": {
+        "value": "*닳도*"
+      }
+    }
+  }
+}
+'
+
+{
+  "took" : 1,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 0,
+      "relation" : "eq"
+    },
+    "max_score" : null,
+    "hits" : [ ]
+  }
+}
+</code></pre></div></div>
+
+<p>위 예를 보면, 본문에 <b>닳도록</b>이라는 문자열이 있어서 <b>닳도</b>라는 검색어로 검색될 것으로 생각할 수 있지만 이미 <b>닳</b>이라는 token으로 분해되어 색인이 되었기 때문에 원하는대로 동작하지 않는다.</p>
+
+<p>이 예시를 통해 wildcard를 사용하더라도 기존 필드는 유지하고 새로운 필드에 다른 tokenizer를 이용하여 색인을 하는 것이 바람직하다고 느꼈다.</p>
+
+<p>색인하는 필드를 늘리게 되면 저장공간을 더 많이 필요로 하고 색인 속도가 느려진다는 단점이 있지만, nori를 이용하여 색인하는 기존 필드는 변하지 않기 때문에 검색 결과가 줄어서 품질이 떨어질 확률은 없다고 생각했다.</p>
+
+<p>(물론, 원하지 않는 검색결과가 노출되어 <a href="https://ko.wikipedia.org/wiki/%EC%A0%95%EB%B0%80%EB%8F%84%EC%99%80_%EC%9E%AC%ED%98%84%EC%9C%A8">precision</a>이 감소할 수 있지만 <a href="https://ko.wikipedia.org/wiki/%EC%A0%95%EB%B0%80%EB%8F%84%EC%99%80_%EC%9E%AC%ED%98%84%EC%9C%A8">recall</a>이 올라갈 것이기 때문에, 검색어 상태에 따라 검색해야 할 필드를 지정하면 큰 문제가 되지 않을 것이라고 판단했다.)</p>
+
+<p>또한, wildcard를 <b>*질의어*</b>와 같이 쓰게 되면 원하는 키워드를 찾기 위해 반복하는 과정이 늘어날 수 있다고 <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-wildcard-query.html#wildcard-query-field-params">경고</a>하고 있기 때문에 다른 방법을 찾아야 했다.</p>
+
+<h2 id="ngram-tokenizer-추가">ngram tokenizer 추가</h2>
+
+<p>새로운 필드에 색인을 한다고 해도 wildcard와 같이 쿼리 레벨에서 처리할 수 없다면, LIKE 검색과 유사하게 색인할 수 있는 tokenizer가 필요했다.</p>
+
+<p>이러한 문제를 해결할 수 있는 ngram tokenizer가 있는데, ngram은 자연어 처리를 조금이라도 해보았다면 한 번쯤 들어봤을 것이다.</p>
+
+<p><img src="http://localhost:4000/assets/images/2020-03-10-01-01.png" alt="ngram" /></p>
+
+<p>위 그림을 보면 ngram에 대해 쉽게 이해할 수 있다.</p>
+
+<p>ngram은 n개의 인접 단어를 추출하여 학습이나 분석에 사용하는데, n=1인 경우 첫 번째 항목처럼 unigram이라 불리우고 각 단어 1개씩을 추출한다.</p>
+
+<p>n=2인 경우는 bigram이라 하고 <b>this is</b>, <b>is a</b>와 같이 2개씩 묶어서 추출한다.</p>
+
+<p>이렇게 추출된 ngram은 인접한 단어 패턴을 분석하여 문서의 종류를 분류하거나 문서를 조합할 때 쓰인다.</p>
+
+<p>ngram을 활용한 tokenizer는 term 레벨에서 ngram을 추출하게 되는데, 단어가 아닌 문자 단위로 추출한다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -XPUT http://localhost:9200/test -H 'content-type: application/json' -d '
+{
+  "settings": {
+    "index": {
+      "analysis": {
+        "analyzer": {
+          "ngram_analyzer": {
+            "type": "custom",
+            "tokenizer": "my_ngram"
+          }
+        },
+        "tokenizer": {
+          "my_ngram": {
+            "type": "ngram",
+            "min_gram": 2,
+            "max_gram": 2,
+            "token_chars": [
+              "letter",
+              "digit"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+'
+
+curl -XPOST http://localhost:9200/test/_analyze?pretty -H 'content-type: application/json' -d '
+{
+  "analyzer": "ngram_analyzer",
+  "text": "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세"
+}
+'
+
+{
+  "tokens" : [
+    {
+      "token" : "동해",
+      "start_offset" : 0,
+      "end_offset" : 2,
+      "type" : "word",
+      "position" : 0
+    },
+    {
+      "token" : "해물",
+      "start_offset" : 1,
+      "end_offset" : 3,
+      "type" : "word",
+      "position" : 1
+    },
+    {
+      "token" : "물과",
+      "start_offset" : 2,
+      "end_offset" : 4,
+      "type" : "word",
+      "position" : 2
+    },
+    {
+      "token" : "백두",
+      "start_offset" : 5,
+      "end_offset" : 7,
+      "type" : "word",
+      "position" : 3
+    },
+    {
+      "token" : "두산",
+      "start_offset" : 6,
+      "end_offset" : 8,
+      "type" : "word",
+      "position" : 4
+    },
+    {
+      "token" : "산이",
+      "start_offset" : 7,
+      "end_offset" : 9,
+      "type" : "word",
+      "position" : 5
+    },
+    {
+      "token" : "마르",
+      "start_offset" : 10,
+      "end_offset" : 12,
+      "type" : "word",
+      "position" : 6
+    },
+    {
+      "token" : "르고",
+      "start_offset" : 11,
+      "end_offset" : 13,
+      "type" : "word",
+      "position" : 7
+    },
+    {
+      "token" : "닳도",
+      "start_offset" : 14,
+      "end_offset" : 16,
+      "type" : "word",
+      "position" : 8
+    },
+    {
+      "token" : "도록",
+      "start_offset" : 15,
+      "end_offset" : 17,
+      "type" : "word",
+      "position" : 9
+    },
+    {
+      "token" : "하느",
+      "start_offset" : 18,
+      "end_offset" : 20,
+      "type" : "word",
+      "position" : 10
+    },
+    {
+      "token" : "느님",
+      "start_offset" : 19,
+      "end_offset" : 21,
+      "type" : "word",
+      "position" : 11
+    },
+    {
+      "token" : "님이",
+      "start_offset" : 20,
+      "end_offset" : 22,
+      "type" : "word",
+      "position" : 12
+    },
+    {
+      "token" : "보우",
+      "start_offset" : 23,
+      "end_offset" : 25,
+      "type" : "word",
+      "position" : 13
+    },
+    {
+      "token" : "우하",
+      "start_offset" : 24,
+      "end_offset" : 26,
+      "type" : "word",
+      "position" : 14
+    },
+    {
+      "token" : "하사",
+      "start_offset" : 25,
+      "end_offset" : 27,
+      "type" : "word",
+      "position" : 15
+    },
+    {
+      "token" : "우리",
+      "start_offset" : 28,
+      "end_offset" : 30,
+      "type" : "word",
+      "position" : 16
+    },
+    {
+      "token" : "리나",
+      "start_offset" : 29,
+      "end_offset" : 31,
+      "type" : "word",
+      "position" : 17
+    },
+    {
+      "token" : "나라",
+      "start_offset" : 30,
+      "end_offset" : 32,
+      "type" : "word",
+      "position" : 18
+    },
+    {
+      "token" : "만세",
+      "start_offset" : 33,
+      "end_offset" : 35,
+      "type" : "word",
+      "position" : 19
+    }
+  ]
+}
+</code></pre></div></div>
+
+<p>위 예를 살펴보면, bigram(2gram)을 추출하여 <b>동해</b>, <b>해물</b>, <b>물과</b>와 같이 2개씩 묶여 색인한 결과를 볼 수 있다.</p>
+
+<p>(질의어 패턴을 보았을 때 bigram만으로 충분히 LIKE 검색과 유사하게 사용할 수 있다고 생각했다. 적용하고자 하는 검색 서비스 특성에 따라  unigram(1gram), trigram(3gram)과 같은 다양한 ngram을 활용할 수 있다.)</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -XGET http://localhost:9200/test/_search?pretty -H 'content-type: application/json' -d '
+{
+  "query": {
+    "multi_match" : {
+      "query": "닳도",
+      "fields": [ "ngram" ]
+    }
+  }
+}
+'
+
+{
+  "took" : 0,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 0.2876821,
+    "hits" : [
+      {
+        "_index" : "test",
+        "_type" : "_doc",
+        "_id" : "1",
+        "_score" : 0.2876821,
+        "_source" : {
+          "nori" : "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세",
+          "ngram" : "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세"
+        }
+      }
+    ]
+  }
+}
+</code></pre></div></div>
+
+<p>이렇게 ngram tokenizer를 이용하면 색인된 문서를 단순 쿼리로 검색할 수 있다.</p>
+
+<p>또한, 아래와 같이 nori, ngram 필드 모두에 대해서도 원하는 검색결과를 얻을 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -XGET http://localhost:9200/test/_search?pretty -H 'content-type: application/json' -d '
+{
+  "query": {
+    "multi_match" : {
+      "query": "백두",
+      "fields": [ "nori", "ngram" ]
+    }
+  }
+}
+'
+
+{
+  "took" : 1,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 1,
+    "successful" : 1,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 1,
+      "relation" : "eq"
+    },
+    "max_score" : 0.8630463,
+    "hits" : [
+      {
+        "_index" : "test",
+        "_type" : "_doc",
+        "_id" : "1",
+        "_score" : 0.8630463,
+        "_source" : {
+          "nori" : "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세",
+          "ngram" : "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리나라 만세"
+        }
+      }
+    ]
+  }
+}
+</code></pre></div></div>
+
+<p>지금까지 nori tokenizer와 ngram tokenizer를 활용하여 사전 및 LIKE 검색을 동시에 처리하는 방법에 대하여 알아보았다.</p>
+
+<ol>
+  <li>nori tokenizer 색인</li>
+  <li>별도의 필드에 ngram tokenizer를 이용하여 색인</li>
+  <li>두 필드에 대해 multi match query 사용</li>
+</ol>
+
+<p>간단히 정리하면, 위 3가지 과정을 거치면 쉽게 적용할 수 있다.</p>
+
+<p>단, 이 방법은 무조건적인 성능 개선이 아니기 때문에(recall은 증가시키고 precision을 감소시킬 수 있기 때문에) 검색 서비스의 특성을 고려하여 반영하는 것이 바람직해보인다.</p>
+
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+        
+          <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> 업데이트:</strong> <time datetime="2020-03-10T16:07:00+09:00">March 10, 2020</time></p>
+        
+      </footer>
+
+      <section class="page__share">
+  
+    <h4 class="page__share-title">공유하기</h4>
+  
+
+  <a href="https://twitter.com/intent/tweet?text=elasticsearch%EC%97%90%EC%84%9C+nori%2C+ngram+tokenizer%EB%A5%BC+%EB%8F%99%EC%8B%9C%EC%97%90+%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0%20http%3A%2F%2Flocalhost%3A4000%2F2020%2F03%2F10%2F01.html" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="공유하기 Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Flocalhost%3A4000%2F2020%2F03%2F10%2F01.html" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="공유하기 Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http%3A%2F%2Flocalhost%3A4000%2F2020%2F03%2F10%2F01.html" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="공유하기 LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/2020/03/07/01.html" class="pagination--pager" title="macOS에서 pyexpat 모듈 못찾는 문제 해결
+">이전</a>
+    
+    
+      <a href="/2020/03/11/01.html" class="pagination--pager" title="pandas를 효율적으로 사용하는 방법(2/2)
+">다음</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    <div class="page__related">
+      <h4 class="page__related-title">참고</h4>
+      <div class="grid__wrapper">
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/2020/03/11/01.html" rel="permalink">pandas를 효율적으로 사용하는 방법(2/2)
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  5 분 소요
+
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">지난 글에서는 pandas를 이용할 때 메모리 효율을 최적화 하기위한 방법에 대해서 알아보았다.
+
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/2020/03/07/01.html" rel="permalink">macOS에서 pyexpat 모듈 못찾는 문제 해결
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  최대 1 분 소요
+
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">macOS에서 pyenv install 시 아래와 같은 메시지와 함께 설치가 안되는 문제가 발생하는 경우가 있다.
+
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/2020/03/05/01.html" rel="permalink">pandas를 효율적으로 사용하는 방법(1/2)
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  3 분 소요
+
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">python을 이용하여 데이터 분석을 하는 사람이라면 pandas는 가장 많이 애용하는 라이브러리 중 하나일 것이다.
+
+</p>
+  </article>
+</div>
+
+        
+          
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="/2017/01/05/01.html" rel="permalink">keras를 이용한 다중 클래스 이미지 분류(2/2)
+</a>
+      
+    </h2>
+    
+      <p class="page__meta"><i class="far fa-clock" aria-hidden="true"></i> 
+
+
+
+
+  2 분 소요
+
+</p>
+    
+    <p class="archive__item-excerpt" itemprop="description">이 글은 이전 글인 keras를 이용한 다중 클래스 이미지 분류에 이어서 작성되었다.
+
+</p>
+  </article>
+</div>
+
+        
+      </div>
+    </div>
+  
+  
+</div>
+
+    </div>
+
+    
+      <div class="search-content">
+        <div class="search-content__inner-wrap"><form class="search-content__form" onkeydown="return event.key != 'Enter';">
+    <label class="sr-only" for="search">
+      Enter your search term...
+    </label>
+    <input type="search" id="search" class="search-input" tabindex="-1" placeholder="검색어를 입력하세요..." />
+  </form>
+  <div id="results" class="results"></div></div>
+
+      </div>
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+      <li><strong>팔로우:</strong></li>
+    
+
+    
+      
+        
+          <li><a href="https://facebook.com/lamttic" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-facebook-square" aria-hidden="true"></i> Facebook</a></li>
+        
+      
+        
+          <li><a href="https://github.com/lamttic" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
+        
+      
+    
+
+    <li><a href="/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> 피드</a></li>
+  </ul>
+</div>
+
+<div class="page__footer-copyright">&copy; 2020 lamttic. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/assets/js/main.min.js"></script>
+  <script src="https://kit.fontawesome.com/4eee35f757.js"></script>
+
+
+
+
+<script src="/assets/js/lunr/lunr.min.js"></script>
+<script src="/assets/js/lunr/lunr-store.js"></script>
+<script src="/assets/js/lunr/lunr-en.js"></script>
+
+
+
+
+
+
+
+  </body>
+</html>

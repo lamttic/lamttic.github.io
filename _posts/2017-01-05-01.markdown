@@ -1,0 +1,120 @@
+---
+layout: single
+classes: wide
+title:  "keras를 이용한 다중 클래스 이미지 분류(2/2)"
+date:   2017-01-05 21:36:00 +0900
+---
+
+이 글은 이전 글인 [keras를 이용한 다중 클래스 이미지 분류]({{ site.url }}/2017/01/04/01.html)에 이어서 작성되었다.
+
+이전 글에서 기 학습된 모델의 feature를 활용하여 top_model을 학습하는 것에 대해 설명하였다면, 이 글에서는 fine tuning을 통해 마지막 레이어를 세밀하게 학습하는 과정을 살펴보도록 하자.
+
+## Fine tuning
+
+이전 글에서 설명했듯이, fine tuning은 미리 학습된 모델의 마지막 레벨 conv block의 weights를 학습하되 새로운 훈련 예를 이용하여 weights를 조금씩 갱신하는 것이다.
+
+fine tuning을 진행하면, overfitting 문제를 줄일 수 있고, 주어진 훈련 예에 맞는 feature들에 대해 세밀한 학습이 이뤄질 수 있다.
+
+아래 코드는, [keras를 이용한 다중 클래스 이미지 분류]({{ site.url }}/2017/01/04/01.html)에서 기 학습된 weights와 [keras 이진 분류 fine tuning 샘플 코드]를 활용하여 생성한 샘플 코드의 일부분이다.
+
+{% highlight python %}
+
+# build a classifier model to put on top of the convolutional model             
+top_model = Sequential()                                                        
+top_model.add(Flatten(input_shape=model.output_shape[1:]))                      
+top_model.add(Dense(256, activation='relu'))                                    
+top_model.add(Dropout(0.5))                                                     
+top_model.add(Dense(len(classes), activation='softmax'))                        
+                                                                                
+# note that it is necessary to start with a fully-trained                       
+# classifier, including the top classifier,                                     
+# in order to successfully do fine-tuning                                       
+top_model.load_weights(top_model_weights_path)                                  
+                                                                                
+# add the model on top of the convolutional base                                
+model.add(top_model)                                                            
+                                                                                
+# set the first 25 layers (up to the last conv block)                           
+# to non-trainable (weights will not be updated)                                
+for layer in model.layers[:25]:                                                 
+    layer.trainable = False     
+
+model.compile(loss='categorical_crossentropy',
+              optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+              metrics=['accuracy'])
+
+# prepare data augmentation configuration
+train_datagen = ImageDataGenerator(
+        rescale=1./255,
+        rotation_range=40,
+        width_shift_range=0.3,
+        height_shift_range=0.3,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode='nearest')
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(
+        train_data_dir,
+        target_size=(img_height, img_width),
+        batch_size=100,
+        class_mode='categorical')
+
+validation_generator = test_datagen.flow_from_directory(
+        validation_data_dir,
+        target_size=(img_height, img_width),
+        batch_size=100,
+        class_mode='categorical')
+
+# fine-tune the model
+model.fit_generator(
+        train_generator,
+        samples_per_epoch=nb_train_samples,
+        nb_epoch=nb_epoch,
+        validation_data=validation_generator,
+        nb_val_samples=nb_validation_samples)
+
+model.save_weights(fine_tuning_weights_path)
+{% endhighlight %}
+
+[keras 이진 분류 fine tuning 샘플 코드]와 차이점을 살펴보면,
+
+1. top model의 dense를 클래스 숫자만큼 설정하고, activation function을 `sigmoid`에서 `softmax`로 변경
+1. model의 loss 함수를 `categorical_crossentropy`으로 변경
+1. ImageDataGenerator를 이용하여 보다 다양한 이미지 증가 
+1. class_mode를 `binary`에서 `categorical`로 변경
+1. fine tuning 된 weights를 저장
+
+우선, activation function은 다중 클래스의 결과값을 나타내야 하기 때문에 `softmax`로 변경하였다.
+
+또한, 다양한 이미지를 확보하여 학습을 진행하기 위해 ImageDataGenerator의 다양한 옵션을 활용하였고, 다중 클래스에 대한 결과 값을 얻기 위해 loss 함수와 class_mode 설정 값을 변경하였다.
+
+위의 코드를 참고하여 fine tuning을 진행하면, 기존 학습과는 다르게 learning rate를 조절하여 굉장히 느리게 학습되는 것을 알 수 있다.
+
+그렇기 때문에 epoch 횟수를 충분히 두어 최소의 loss를 갖는 포인트까지 학습해야 한다.
+
+(위의 예에서는 훈련 예가 많아서 nb_epoch 횟수를 150회로 증가시켜 진행하였다.)
+
+## 학습 결과
+
+위의 코드를 토대로 진행한 학습 조건과 결과물은 다음과 같다.
+
+1. 클래스 갯수: 5
+
+1. 훈련 예: 2000 * 5
+
+1. 테스트 예: 500 * 5
+
+1. 클래스 별 정확도
+
+    A: 0.826531
+    B: 0.970954
+    C: 0.816832
+    D: 0.796530
+    E: 0.731481
+
+일단, 기본적인 정확도를 가진 분류기를 학습했으니, 지속적으로 문제점을 찾아 개선하도록 하자.
+
+[keras 이진 분류 fine tuning 샘플 코드]: https://gist.github.com/fchollet/7eb39b44eb9e16e59632d25fb3119975

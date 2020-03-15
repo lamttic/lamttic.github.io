@@ -1,0 +1,58 @@
+---
+layout: single
+classes: wide
+title:  "GPU를 인식하지 못하는 문제 해결"
+date:   2017-01-02 16:20:00 +0900
+---
+
+이 포스트에서는 tensorflow와 keras를 이용하여 이미지를 분류할 때, GPU를 인식하지 못하는 문제에 대해 기술하려고 한다.
+
+이 포스트에서 다루는 문제는 필자가 경험한 내용만을 다루고 있으므로 참고바란다.
+
+## GPU를 인식하지 못하는 문제
+
+우선, 이전 포스트인 [딥러닝 테스트용 PC 설치 및 설정]({{ site.url }}/2016/12/29/01.html)을 선행한 후, terminal에서 아래와 같은 명령어를 입력해보도록 하자.
+
+{% highlight bash %}
+nvidia-smi
+{% endhighlight %}
+
+그 결과가 아래와 같이 나온다면 GPU 드라이버 설치는 정상적으로 이루어진 것이다.
+
+{% highlight bash %}
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 375.26                 Driver Version: 375.26                    |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|   0  GeForce GTX 1080    Off  | 0000:01:00.0     Off |                  N/A |
+|  0%   30C    P8    13W / 198W |   7745MiB /  8111MiB |      0%      Default |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                       GPU Memory |
+|  GPU       PID  Type  Process name                               Usage      |
+|=============================================================================|
+|    0     19846    C   .../versions/2.7.13/envs/keras/bin/python2.7  7743MiB |
++-----------------------------------------------------------------------------+
+{% endhighlight %}
+
+만약, 명령어를 인식하지 못한다거나 문제가 발생한다면 GPU 드라이버 설치에 문제가 있는 것이다.
+
+이 경우, 아래의 GPU 드라이버 설치 가이드 및 tensorflow os별 설치 방법을 참고하면 해결이 가능하다.
+
+[GPU 드라이버 설치 가이드], [tensorflow os별 설치 방법]
+
+대체적으로 keras 이용시 문제가 되었던 부분은, 
+
+1. nvidia GPU 드라이버의 잘못된 설치
+1. nvidia-modprobe의 미활용(nvidia-modprobe는 머신이 실행될 때마다 자동적으로 NVIDIA 커널 모듈을 불러오고, NVIDIA 캐릭터 장치를 생성하는 역할을 한다.)
+1. CUDA_HOME, LD_LIBRARY_PATH 등 cuda, cudnn 경로 환경 변수 미적용
+
+정도였던 것 같다.
+
+추후, 새로운 문제가 발견되어 해결한다면 업데이트를 하도록 하겠다.
+
+[GPU 드라이버 설치 가이드]: https://gist.github.com/wangruohui/df039f0dc434d6486f5d4d098aa52d07
+[tensorflow os별 설치 방법]: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md

@@ -1,0 +1,187 @@
+---
+layout: single
+classes: wide
+title:  "keras를 이용한 이미지 이진 분류"
+date:   2017-01-01 12:03:00 +0900
+---
+이번 포스트에는 `keras`를 이용한 이미지 이진 분류 테스트를 진행해보고자 한다.
+
+(이 포스트는 [keras 이미지 분류 모델 생성 블로그]를 참고하여 작성하였다.)
+
+자동 분류 작업을 위해서는 이전 포스트인 [딥러닝 테스트용 PC 설치 및 설정]({{ site.url }}/2016/12/29/01.html)을 선행해야 한다.
+
+선행을 완료했다면, [keras 설치 공식 홈페이지]에 따라 `numpy`, `scipy`, `pyyaml`, `h5py`등을 설치하도록 한다.
+
+(`cudnn`와 `tensorflow`는 위에 언급한 선행 설치를 올바르게 했다면 설치가 되었을 것이다.)
+
+{% highlight ruby %}
+sudo pip install numpy scipy pyyaml h5py
+{% endhighlight %}
+
+pip를 이용하여 keras를 설치하도록 하자.
+
+{% highlight ruby %}
+sudo pip install keras
+{% endhighlight %}
+
+keras까지 설치가 끝났다면, 아래와 같이 `~/.keras/keras.json` 파일의 `image_dim_ordering`항목을 `th`로 수정한다.
+
+{% highlight ruby %}
+{
+    "image_dim_ordering": "th", #=> tf를 th로 변경
+    "epsilon": 1e-07,                                                              
+    "floatx": "float32",                                                           
+    "backend": "tensorflow"                                                        
+}  
+{% endhighlight %}
+
+`image_dim_ordering`은 이미지의 3차원 dimension을 표현할 때 각 값의 순서를 정하는 옵션이다. 
+
+위 블로그의 예제는 (pixel value, x dimension, y dimension)의 순서대로 구성되어 있어 `th`로 변경하면 된다.
+
+그리고 이미지 처리를 위해 아래와 같이 `Pillow` 라이브러리를 설치하도록 한다.
+
+{% highlight ruby %}
+sudo yum install python-devel libjpeg-devel zlib-devel libpng-devel
+sudo pip install pillow
+{% endhighlight %}
+
+이제 본격적으로 이미지 분류를 진행해보도록 하자.
+
+해당 블로그에서 설명하고 있는 이미지 분류 성능을 높이는 과정은 크게 3단계로 나뉜다.
+<br/><br/>
+
+## 이미지 증가(Image Augmentation)
+
+이미지 증가는 적은 수의 훈련 이미지를 임의로 변환함으로써 다양한 훈련 이미지를 확보한다.
+
+이렇게 확보된 훈련 이미지를 학습에 이용함으로써 기계 학습에서 항상 언급되는 overfit 문제를 보완할 수 있다.
+
+알려진대로 딥러닝은 엄청나게 많은 훈련 예를 필요로 하지만, 이미지 증가를 이용하면 어느정도 훈련 예를 보장할 수 있다.
+
+keras의 ImageDataGenerator 클래스를 이용하면, 아래와 같이 회전 정도, 상하좌우 이동, 경사도, 줌 레벨, 좌우 반전 등의 다양한 옵션을 통한 이미지 증가를 할 수 있다.
+
+{% highlight python %}
+from keras.preprocessing.image import ImageDataGenerator
+
+datagen = ImageDataGenerator(
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        rescale=1./255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode='nearest')
+{% endhighlight %}
+
+샘플 코드는 아래 링크를 참고하면 된다.
+
+[keras 이미지 증가 샘플 코드]
+<br/><br/>
+
+## 미리 학습된 모델의 bottleneck feature를 이용
+
+두 번째 방법으로는 기존에 학습한 모델의 일부 feature들을 이용하여 학습을 진행하는 것이다.
+
+[keras 이미지 분류 모델 생성 블로그]에서는 VGG16 모델의 bottleneck feature를 이용하여 학습을 진행한다.
+
+VGG16은 ILSVRC-2014 대회에서 VGG팀이 사용한 16개의 layer로 구성된 모델로써, 수많은 카테고리의 다양한 이미지를 학습한 모델이다. 
+
+VGG16은 아래 링크에서 다운로드 받으면 된다.
+
+[VGG16 모델 다운로드]
+
+VGG16 모델을 다운로드 받은 후, 아래와 같은 코드로 bottleneck feature를 추출한다.
+
+{% highlight  python%}
+generator = datagen.flow_from_directory(
+        'data/train',
+        target_size=(150, 150),
+        batch_size=32,
+        class_mode=None,
+        shuffle=False)
+# the predict_generator method returns the output of a model, given
+# a generator that yields batches of numpy data
+bottleneck_features_train = model.predict_generator(generator, 2000)
+# save the output as a Numpy array
+np.save(open('bottleneck_features_train.npy', 'w'), bottleneck_features_train)
+
+generator = datagen.flow_from_directory(
+        'data/validation',
+        target_size=(150, 150),
+        batch_size=32,
+        class_mode=None,
+        shuffle=False)
+bottleneck_features_validation = model.predict_generator(generator, 800)
+np.save(open('bottleneck_features_validation.npy', 'w'), bottleneck_features_validation)
+{% endhighlight %}
+
+이렇게 추출된 bottleneck feature를 토대로 아래와 같이 fully-connected 모델을 훈련한다.
+
+{% highlight python %}
+train_data = np.load(open('bottleneck_features_train.npy'))
+# the features were saved in order, so recreating the labels is easy
+train_labels = np.array([0] * 1000 + [1] * 1000)
+
+validation_data = np.load(open('bottleneck_features_validation.npy'))
+validation_labels = np.array([0] * 400 + [1] * 400)
+
+model = Sequential()
+model.add(Flatten(input_shape=train_data.shape[1:]))
+model.add(Dense(256, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(1, activation='sigmoid'))
+
+model.compile(optimizer='rmsprop',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
+
+model.fit(train_data, train_labels,
+          nb_epoch=50, batch_size=32,
+          validation_data=(validation_data, validation_labels))
+model.save_weights('bottleneck_fc_model.h5')
+{% endhighlight %}
+
+위와 같이 훈련된 모델의 weights를 이용하여 predict를 해보면, 약 90%에 가까운 정확도를 보인다.(<span style="color:grey">~~88%인건 함정~~</span>)
+
+샘플 코드는 아래의 링크를 참고하면 된다.
+
+[keras 기 학습된 모델 이용 샘플 코드]
+<br/><br/>
+
+## Fine tuning
+
+마지막으로 fine tuning은 미리 학습된 모델의 마지막 레벨 conv block의 weights를 학습하되, 새로운 훈련 예를 이용하여 weigits를 조금씩 갱신하는 방법이다.
+
+이 과정은 총 3단계 나뉘어 진행할 수 있다.
+
+1. VGG16모델(기 학습된 모델)과 weights를 불러와서 초기화한다.
+1. 2단계에서 학습된 fully-connected 모델을 top model로 붙이고, weights를 불러온다.
+1. 생성된 모델의 마지막 conv block에 새로운 훈련 예로 학습
+
+fine tuning을 위한 주의사항은 다음과 같다.
+
+1. 모든 레이어는 기 학습이 되어있어야 한다.
+1. 전체 레이어에 대해 fine tuning을 진행하는 것이 아니라, 마지막 conv block에만 진행한다.
+1. fine tuning에는 RMSProp과 같은 adaptive optimizer보다 SGD optimizer같은 optimizer가 선호된다.
+
+모든 레이어가 기 학습되어야 하는 이유는 학습도중 급격한 weights 변화로 학습 결과가 망가지는 것을 방지하기 위함이고, 마지막 conv block에만 fine tuning을 진행하는 이유는 overfitting 문제를 방지하기 위함이다.
+
+위와 같이 fine tuning을 진행하면, 약 95%에 가까운 정확도를 보인다. 놀랍지 않은가...
+
+샘플 코드는 아래의 링크를 참고하면 된다.
+
+[keras fine tuning 샘플 코드]
+
+이렇게 [keras 이미지 분류 모델 생성 블로그]를 참고하여, 소량의 훈련 예로도 훌륭한 성능을 가지는 이진 이미지 분류기를 만들어보았다.
+
+이후에는, 다양한 카테고리를 분류할 수 있는 분류기를 만들어보고자 한다.
+
+
+[keras 설치 공식 홈페이지]: https://keras.io/#installation
+[keras 이미지 분류 모델 생성 블로그]: https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html
+[keras 이미지 증가 샘플 코드]: https://gist.github.com/fchollet/0830affa1f7f19fd47b06d4cf89ed44d
+[keras 기 학습된 모델 이용 샘플 코드]: https://gist.github.com/fchollet/f35fbc80e066a49d65f1688a7e99f069
+[keras fine tuning 샘플 코드]: https://gist.github.com/fchollet/7eb39b44eb9e16e59632d25fb3119975
+[VGG16 모델 다운로드]: https://gist.github.com/baraldilorenzo/07d7802847aaad0a35d3
