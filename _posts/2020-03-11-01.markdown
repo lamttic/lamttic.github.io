@@ -145,6 +145,7 @@ pandas는 엄청나게 많은 method와 attribute를 제공한다. 그 중 주�
 1. 반복처리가 필요할 때는 단순 반복이나 iterrows method 보다는 벡터화를 이용하여 처리하는 것이 더 빠르다.
 1. 요구사항을 만족하더라도 속도를 더 개선시킬 수 있도록 다른 built-in method가 없는지 확인하자.
 
+
 [A Beginner’s Guide to Optimizing Pandas Code for Speed]: https://engineering.upside.com/a-beginners-guide-to-optimizing-pandas-code-for-speed-c09ef2c6a4d6
 [Haversine]: https://en.wikipedia.org/wiki/Haversine_formula
 [pycon2017-optimizing-pandas]: https://github.com/s-heisler/pycon2017-optimizing-pandas
