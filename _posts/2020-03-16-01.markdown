@@ -75,6 +75,6 @@ tags: information-retrieval evaluation accuracy precision recall
 1. 정확도, 정밀도, 재현율의 개념을 이해하자.
 1. 다양한 평가 기준 중 IR이 중점적으로 봐야 하는 특성에 맞는 값을 기준으로 사용할 수 있다.
 
-다음 글에서는 정밀도, 재현율을 발전시킨 평가모델인 MRR, MAP, NDCG에 대해 알아보도록 한다.
+다음 글에서는 정밀도, 재현율을 발전시킨 평가모델인 MRR, MAP, NDCG에 대해 알아보도록 하자.
 
 [precision and recall]: https://en.wikipedia.org/wiki/Precision_and_recall
