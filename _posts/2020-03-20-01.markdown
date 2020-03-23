@@ -111,6 +111,10 @@ MAP은 전반적으로 훌륭한 평가 모델이 될 수 있다. 만약 컨텐�
 
 보다시피 NDCG는 특별한 경우가 아니고서는 훌륭한 평가 기준이 될 수 있다. 다만, 특별한 경우에 대해서 예외처리를 해주어야 하고 관련도에 대한 기준을 상황마다 명확하게 세워야 한다. 이런 부분을 감안하더라도 평점 기반의 추천 서비스에서 NDCG를 활용하면 좋은 평가를 할 수 있는 것이라 생각된다. 
 
+## 예제 코드
+
+MRR, MAP, NDCG에 대한 샘플 코드는 [샘플 코드]에 개발해두었다.
+
 ## 마치며
 
 [지난 글]부터 이번 글까지 IR을 평가할 수 있는 다양한 평가 모델에 대해서 설명했다.
@@ -127,3 +131,4 @@ MAP은 전반적으로 훌륭한 평가 모델이 될 수 있다. 만약 컨텐�
 
 [https://medium.com/swlh/rank-aware-recsys-evaluation-metrics-5191bba16832]: https://medium.com/swlh/rank-aware-recsys-evaluation-metrics-5191bba16832
 [지난 글]: {{ site_url }}/2020/03/16/01.html
+[샘플 코드]: https://github.com/lamttic/snippets/tree/master/ir-evaluation
