@@ -2,7 +2,7 @@
 layout: single
 excerpt: ""
 title: "딥러닝 없이 검색어 오타 보정하기"
-date: 2020-04-02 00:34:00 +0900
+date: 2020-04-02 16:34:00 +0900
 tags: search typo-correction levenshtein-distance
 ---
 
