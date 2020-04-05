@@ -2,7 +2,7 @@
 layout: single
 excerpt: ""
 title: "딥러닝 없이 검색어 오타 보정하기"
-date: 2020-04-06 00:34:00 +0900
+date: 2020-04-02 00:34:00 +0900
 tags: search typo-correction levenshtein-distance
 ---
 
@@ -126,4 +126,3 @@ tags: search typo-correction levenshtein-distance
 1. 사용자가 검색을 요청할 때 오타 보정 사전을 활용하여 보정된 결과를 반환한다.
 
 [levenshtein distance 링크]: https://en.wikipedia.org/wiki/Levenshtein_distance
-[levenshtein distance python code]: https://en.wikipedia.org/wiki/Levenshtein_distance
