@@ -194,7 +194,6 @@ vect__ngram_range: (1, 1)
 1. CountVectorizer, TfidfTransformer, LogisticRegression
 1. API serving
 
-
 ## 차이점
 
 상품 제목을 이용하여 상품 카테고리를 예측하는 작업은 [working with text data]의 `Twenty Newsgroups`에서 문서 주제를 예측하는 것과 유사한 작업이지만 약간의 차이점이 있었다.

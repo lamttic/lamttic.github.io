@@ -115,3 +115,5 @@ API를 개선하여 사용자가 자신의 성별이나 연령, 좋아하지 않
 
 유사 상품과 함께 본 상품 기능을 추천 시스템에 통합시킨 후 홈피드에 내가 본 상품과 유사한 상품을 포함시킬 수 있도록 한다.
 
+https://blog.mimacom.com/parent-child-elasticsearch/
+
