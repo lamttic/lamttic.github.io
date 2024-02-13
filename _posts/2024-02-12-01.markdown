@@ -1,0 +1,79 @@
+---
+layout: single
+excerpt: ""
+title: "AWS VPC와 외부 네트워크 연결하기"
+date: 2024-02-12 00:29:00 +0900
+---
+
+AWS를 활용하는 회사나 개인들은 다양한 외부 네트워크를 AWS VPC와 연결하고자 하는 경우가 있다. 예를 들어, 사무실 네트워크와 AWS VPC를 연결하여 사내 개발팀이 별도의 인증 절차없이 AWS VPC내 여러 리소스에 접근할 수 있는 환경을 구성하거나 IDC내 서버 클러스터와 AWS VPC를 연결하여 서버 클러스터에서 AWS 내 여러 서비스에 접근하여 저장된 데이터를 수집하는 환경을 구성할 수도 있다.
+
+이렇게 별도의 네트워크와 AWS 네트워크를 연결하기 위해서는 여러 가지 방법을 사용할 수 있지만, 각 케이스마다 연결하고자 하는 목적과 네트워크 특성 및 예산이 다르기 때문에 주어진 상황에 맞추어 적절한 방법을 정해야 한다.
+
+이 글에서는 AWS VPC와 외부 네트워크를 연결하는 세 가지 방법에 대해 살펴보고, 테스트 및 실제로 적용 후 느꼈던 장단점을 적어보고자 한다.
+
+## DX(Direct connect)
+
+![DX]({{site_url}}/assets/images/2024-02-12-01-01.png)
+
+DX(Direct connect)는 퍼블릭 네트워크를 통하지 않고 전용 네트워크로 두 네트워크를 직접 연결하는 방법이다. 퍼플릭 네트워크를 통하지 않고 직접 연결하기 때문에 우수한 네트워크 성능을 보이며, 여러 암호화 옵션을 통해 보안된 데이터를 다룰 수 있다. 또한, SiteLink를 통해 여러 위치에 존재하는 각 네트워크 간에 최단 경로로 데이터를 보낼 수 있다.
+
+이러한 DX의 가장 큰 장점은 안정적이고 빠른 네트워크를 가지고 있다는 점이다. 최대 100Gbps 까지 속도를 확장할 수 있어서 사실상 외부 네트워크를 AWS 네트워크처럼 쓸 수 있는 하이브리드 네트워크라고 할 수 있다.
+
+다만, 단점 또한 명확한데 다른 방법에 비해 많은 비용이 발생한다는 점이다. DX의 비용은 데이터 전송 최대 속도, 포트의 프로비저닝된 시간, AWS 네트워크에서 외부 네트워크로 송신한 네트워크 양을 조합하여 계산되는데 특히 포트의 수가 늘어날수록 비용이 선형으로 늘어나게 되어 많은 비용이 발생할 수 있다.
+
+실제로 사내 개발팀 업무 효율을 위해 사무실 네트워크와 AWS VPC를 DX로 연결하여 사용해본 결과 별도의 VPN 없이 AWS 서비스에 접근할 수 있어 쾌적하게 개발할 수 있는 환경은 제공되었으나 꽤 많은 비용을 지불했어야 했다.
+
+결론적으로 DX는 비용 절감을 크게 고려하지 않고 성능과 안정성에 치중해야 하는 경우이거나, 후술할 S2S VPN과 SSM Port-forwarding 방식을 사용하기 어려울 때 고려해보는 것이 좋다.
+
+## S2S VPN(Site to site VPN)
+
+앞서 설명한 DX는 외부 네트워크에서 실 서비스 트래픽을 받는 상황이나 SiteLink로 여러 로케이션 간 네트워크 연결을 위한 상황이 아니라면 비용 대비 만족스럽지 않을 수 있다.
+
+이럴 때 대안으로 S2S VPN(Site to site VPN)을 고려해볼 수 있다.
+
+![S2S VPN]({{site_url}}/assets/images/2024-02-12-01-02.png)
+
+S2S VPN은 위 그림과 같이 인터넷망을 통해 외부 네트워크와 AWS VPC를 연결하기 위한 방법으로, DX 만큼 안정적이거나 빠른 속도를 보장할 수는 없으나 장시간 사용해도 안정적인 연결이 가능하고, 인터넷 프로토콜 보안(IPSec) VPN 연결을 지원하여 안전성을 보장할 수 있다는 장점이 있다. 또한, 실제 연결된 VPN 연결 수와 데이터 송신 요금을 기준으로 총 비용이 산정되어 DX에 비해 합리적인 비용으로 네트워크 연결을 사용할 수 있다.
+
+다만, 설정에 따라 간헐적인 네트워크 연결 지연이 발생할 수 있어 설정을 최적화하는 것이 중요하다. S2S VPN를 적용하기 위해 여러 옵션이 존재하는데, 특히 인터넷망을 통해 네트워크를 연결하는 S2S VPN 특성상, VPN 터널 가입(VPN Tunnel initiation)에 관한 설정이 중요하다. VPN 터널 가입에 대한 설정에 대한 내용은 [여기](https://docs.aws.amazon.com/vpn/latest/s2svpn/initiate-vpn-tunnels.html)에서 확인할 수 있는데, DPD(Dead peer detection), Startup action 설정이 VPN 터널링 관리에 중요한 역할을 한다.
+
+예를 들어, 두 네트워크 간 연결이 장시간 동안 유지되어야 하고, 비용 발생에 대한 부담이 덜하다면 Startup action을 Start로 설정하여 AWS에서 VPN 터널 가입을 제어하는 것이 바람직하다. 물론, 외부 네트워크 게이트웨이의 IP 주소가 필요하고, IKE의 버젼을 2로 보장할 수 있어야 한다는 제약이 있지만 위 설정을 통해 꽤 안정적인 네트워크 연결을 보장할 수 있다. 반대로, 두 네트워크 연결이 장시간 동안 유지될 필요가 없고, 터널링 가입에 걸리는 시간에 민감하지 않다면, Starup action을 기본 값(Add)로 두고, DPD timeout을 적절히 설정하여 터널 유지 라이프타임을 제어할 수도 있다. 다만, 이 경우에는 외부 네트워크에서 지속적인 Ping 처리를 통해 DPD timeout에 걸리지 않도록 추가적인 프로세스가 필요할 수 있다.
+
+## SSM(AWS system manager) Port-forwarding
+
+S2S VPN은 DX에 비해 저비용으로 고효율의 네트워크 연결을 지원하지만, DX와 마찬가지로 사용하는 VPN 연결 수에 따라 비용이 증가하므로 많은 연결이 발생하는 환경에서는 비용이 많이 발생할 수 있다. 만약 비용을 더 절감하고 싶다면 SSM Port-forwarding을 활용해보는 것을 고려할 수 있다.
+
+![SSM Port-forwarding]({{site_url}}/assets/images/2024-02-12-01-03.png)
+
+SSM Port-forwarding은 위 그림과 같이 SSM agent를 이용하여 AWS 네트워크에 대한 접근 권한을 가진 배스쳔(Bastion) 호스트를 필요한 서비스에 포트포워딩하여 사용하는 방법이다.
+
+```yaml
+aws ssm start-session --region {REGION} --target {BASTION_HOST} --document-name AWS-StartPortForwardingSession --parameters {PARAMETERS}
+```
+
+이 방법의 장점은 배스쳔 호스트로 사용하는 인스턴스 이외에 별도의 비용도 발생하지 않고, 기본적인 IO bound 설정과 위와 같이 간단한 AWS agent의 실행만으로 사용이 가능할 정도로 쉽다는 것이다. 하지만, AWS 서비스에 접근하는 동안에는 유후 시간 초과(Idle timeout)가 발생하지 않도록 연결을 유지시키기 위해 지속적인 Ping 요청이 필요하기에 별도의 프로세스 구성이 필요하다. 또한 경험적으로 연결이 불안한 경우가 많았는데, 특히 배스쳔 호스트로 사용하는 인스턴스 사양이나 상태에 따라 연결이 불안정해지는 경우가 많았다.
+
+결론적으로 이 방법은 비용이 많이 부담되거나 네트워크 안정성이 많이 요구되지 않는 네트워크 간 연결이 필요할 때 사용하면 좋다고 느꼈다.
+
+## 마치며
+
+지금까지 AWS 네트워크와 외부 네트워크를 연결하기 위한 세 가지 방법에 대해 알아보았다.
+
+DX는 가장 많은 비용이 발생할 수 있지만, 전용망 연결을 통해 안정적이고 빠른 네트워크간 연결이 가능하고, 여러 로케이션의 네트워크 망을 연결하여 최적화된 네트워크 성능을 보장할 수 있다.
+
+S2S VPN은 DX와 같이 빠르고 안정적인 네트워크 연결을 보장하기는 어렵지만, 여러 설정을 최적화하면 합리적인 비용으로 안정적인 네트워크 연결을 보장할 수 있다.
+
+마지막으로 SSM Port-forwarding은 별도의 배스쳔 호스트를 포트포워딩하여 AWS 내 private 네트워크와 연결하여 최소한의 비용으로 외부 네트워크를 연결할 수 있으나, 장시간 연결이나 커다란 네트워크 대역폭을 처리하기에는 적합하지 않다.
+
+우리는 세 가지 방법 중 비용과 네트워크 연결의 안정성 및 성능 간 트레이드 오프가 있어 적용하고자 하는 목적에 따라 적절한 선택이 필요하다.
+
+
+## 참고문헌
+
+1. [https://docs.aws.amazon.com/whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect.html]
+2. [https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html]
+3. [https://aws.amazon.com/blogs/mt/use-port-forwarding-in-aws-systems-manager-session-manager-to-connect-to-remote-hosts/]
+
+[https://docs.aws.amazon.com/whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect.html]: https://docs.aws.amazon.com/whitepapers/latest/aws-vpc-connectivity-options/aws-direct-connect.html
+[https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPNTunnels.html
+[https://aws.amazon.com/blogs/mt/use-port-forwarding-in-aws-systems-manager-session-manager-to-connect-to-remote-hosts/]: https://aws.amazon.com/blogs/mt/use-port-forwarding-in-aws-systems-manager-session-manager-to-connect-to-remote-hosts/
