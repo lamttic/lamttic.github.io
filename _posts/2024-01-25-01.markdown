@@ -3,6 +3,7 @@ layout: single
 excerpt: ""
 title: "KEDA를 활용한 스케일링 스케쥴링하기"
 date: 2024-01-25 23:10:00 +0900
+tags: KEDA kubernetes
 ---
 
 이 글에서는 쿠버네티스 환경에서 다양한 조건의 파드 스케일링을 위해 HPA(Horizontal Pod Autoscaler) 대신에 KEDA(Kuberneters Event-Driven Autoscaler)를 활용하는 것에 대해 살펴보고자 한다.

@@ -3,6 +3,7 @@ layout: single
 excerpt: ""
 title: "AWS VPC와 외부 네트워크 연결하기"
 date: 2024-02-12 00:29:00 +0900
+tags: aws network tunneling dx s2s-vpn ssm bastion
 ---
 
 AWS를 활용하는 회사나 개인들은 다양한 외부 네트워크를 AWS VPC와 연결하고자 하는 경우가 있다. 예를 들어, 사무실 네트워크와 AWS VPC를 연결하여 사내 개발팀이 별도의 인증 절차없이 AWS VPC내 여러 리소스에 접근할 수 있는 환경을 구성하거나 IDC내 서버 클러스터와 AWS VPC를 연결하여 서버 클러스터에서 AWS 내 여러 서비스에 접근하여 저장된 데이터를 수집하는 환경을 구성할 수도 있다.
