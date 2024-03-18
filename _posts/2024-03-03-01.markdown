@@ -67,11 +67,11 @@ SMOTE는 위와 같이 두 샘플 사이에 각 feature의 보간(Interpolation)
 
 focal loss는 학습 모델에서 클래스 불균형 문제를 다루기 위해 설계된 손실 함수로 `Focal Loss for Dense Object Detection`이라는 논문에서 Lin에 의해 소개되었다.
 
-focal loss의 목적은 교차 엔트로피 손실(cross-entropy loss)과 유사하지만 쉬운 positive 샘플에 덜 집중하고, 어려운 negative 샘플에 더 집중하여 전반적인 분류 성능을 향상시키는 것에 있다.
+focal loss의 목적은 교차 엔트로피 손실(cross-entropy loss)과 유사하지만 쉬운 샘플에 덜 집중하여 전반적인 분류 성능을 향상시키는 것에 있다.
 
 $$FL(p_t) = -(1-p_t)^{\gamma}{\log}(p_t)$$
 
-위 focal loss의 수식을 보면, 기존 교차 엔트로피 손실에 $$(1-p_t)$$의 수식을 추가하여 쉬운 positive 샘플에 대한 손실을 줄이고, 어려운 negative 샘플에 대한 손실에 집중하게 된다. 또한, 이것의 정도를 $${\gamma}$$를 활용하여 조절할 수 있다.
+위 focal loss의 수식을 보면, 기존 교차 엔트로피 손실에 $$(1-p_t)$$의 수식을 추가하여 쉬운 샘플에 대한 손실을 줄임으로써, 어려운 샘플에 대한 손실에 집중하게 된다. 또한, 이것의 정도를 $${\gamma}$$를 활용하여 조절할 수 있다.
 
 아래 코드는 PyTorch에서 구현한 focal loss 예제 코드이다.
 
@@ -98,7 +98,7 @@ asymmetric loss는 앞서 설명한 focal loss의 문제점을 해결하면서 �
 
 `Asymmetric Loss For Multi-Label Classification`라는 논문에서 제안된 방법으로, 이름에서도 알 수 있듯이 여러 클래스에 대해 비대칭적인 계산을 통해 클래스 불균형 문제를 해결한다.
 
-focal loss는 정답에 가깝게 예측한 샘플은 다수 클래스, 소수 클래스 상관 없이 무조건 영향을 줄인다. 그래서 가뜩이나 적은 소수 클래스에 기여도가 더 줄어들어서 전반적인 성능 저하를 유발할 수 있다는 단점이 있다.
+focal loss는 정답에 가깝게 예측한 샘플(쉬운 샘플)은 다수 클래스, 소수 클래스 상관 없이 무조건 영향을 줄인다. 그래서 가뜩이나 적은 소수 클래스에 기여도가 더 줄어들어서 전반적인 성능 저하를 유발할 수 있다는 단점이 있다.
 
 이러한 문제를 해결하기 위해 asymmetric loss는 두 가지 개선점을 제시한다.
 
@@ -114,13 +114,13 @@ $$L_-=p^{\gamma_-}\log(1-p)$$
 
 **Asymmetric probability shifting**
 
-위 asymmetric focusing보다 더 강력하게 쉬운 negative 샘플을 제어하기 위해 loss에 들어가는 확률의 일부를 강제로 조정한다.
+asymmetric focusing보다 더 강력하게 쉬운 negative 샘플을 제어하기 위해 loss에 들어가는 확률의 일부를 강제로 조정한다.
 
 $$p_m=\max(p-m, 0)$$
 
 수식을 보면, m(margin) 보다 작은 확률값을 가지면 강제로 0의 확률값을 가지도록 한다.
 
-적절한 m 값을 지정하면 모든 negative 샘플의 기여도는 줄어들게 되고, m 미만의 확률값은 0으로 치환되므로 쉬운 negative 샘플의 기여도는 0이 되어, 클래스 불균형 문제를 조금 더 강력하게 제어할 수 있게 된다.
+적절한 m 값을 지정하면 모든 negative 샘플의 기여도는 m만큼 줄어들게 되고, m 미만의 확률값은 0으로 치환되므로 쉬운 negative 샘플의 기여도는 0이 되어, 클래스 불균형 문제를 조금 더 강력하게 제어할 수 있게 된다.
 
 아래 코드는 PyTorch에서 구현한 asymmetric loss의 예제 코드이다.
 
