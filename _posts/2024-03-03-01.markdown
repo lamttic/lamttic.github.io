@@ -3,6 +3,7 @@ layout: single
 excerpt: ""
 title: "클래스 불균형(Class imbalance) 문제 개선하기"
 date: 2024-03-03 00:39:00 +0900
+tags: class-imbalance focal-loss asymmetric-loss sampling ml
 ---
 
 실 데이터로 머신러닝 모델을 학습하다보면 일부 클래스의 데이터가 다른 클래스에 비해 상대적으로 많은 클래스 불균형(Class imbalance) 문제를 자주 마주하게 된다. 이러한 클래스 불균형 문제는 편향된 모델을 학습하게 되어 높은 성능을 보장하기 어렵기 때문에 적절하게 해결해주어야 한다. 
